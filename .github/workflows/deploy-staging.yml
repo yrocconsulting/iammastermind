@@ -25,6 +25,14 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SG_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+      - name: Check SSH key
+        run: |
+          if ! ssh-keygen -y -P "" -f ~/.ssh/id_ed25519 > /tmp/pub 2>/tmp/err; then
+            echo "::error::SG_SSH_KEY can't be used: $(cat /tmp/err). It must be the PRIVATE key (BEGIN ... PRIVATE KEY) with NO passphrase."
+            exit 1
+          fi
+          echo "Key OK. Fingerprint (must match the key imported in SiteGround > SSH Keys Manager):"
+          ssh-keygen -lf /tmp/pub
       - name: Deploy
         env:
           SG_HOST: ${{ secrets.SG_HOST }}

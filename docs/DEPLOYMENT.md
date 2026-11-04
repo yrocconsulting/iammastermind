@@ -37,7 +37,7 @@ tools/deploy.sh
 ```
 
 Or use the GitHub Action (`.github/workflows/deploy-staging.yml`). To turn it on, add:
-- repository secrets `SG_HOST`, `SG_USER`, `SG_SSH_KEY`,
+- repository secrets `SG_HOST`, `SG_USER`, `SG_SSH_KEY` (plus `SG_SSH_PASSPHRASE` if the key has a password),
 - repository variable `SG_DEPLOY_ENABLED=true`.
 
 After that, every push to `main` that changes the theme deploys it.

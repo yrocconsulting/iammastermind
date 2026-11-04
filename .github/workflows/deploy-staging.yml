@@ -3,6 +3,7 @@ name: Deploy to staging
 # Deploys wp-content/themes/iammastermind to iammastermind.yroc.host (SiteGround) over SSH.
 # Repository secrets required (Settings > Secrets and variables > Actions):
 #   SG_HOST, SG_USER, SG_SSH_KEY (private key whose public half is in SiteGround SSH Keys Manager)
+#   SG_SSH_PASSPHRASE (only if that key has a passphrase)
 # Optional repository variables: SG_PORT (default 18765), SG_WP (WordPress root path).
 on:
   workflow_dispatch:
@@ -26,9 +27,17 @@ jobs:
           echo "${{ secrets.SG_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
       - name: Check SSH key
+        env:
+          SG_SSH_PASSPHRASE: ${{ secrets.SG_SSH_PASSPHRASE }}
         run: |
+          # A passphrase-protected key (e.g. generated in SiteGround) works if its
+          # passphrase is stored as the SG_SSH_PASSPHRASE secret: decrypt it in the runner.
+          if [ -n "$SG_SSH_PASSPHRASE" ]; then
+            ssh-keygen -p -P "$SG_SSH_PASSPHRASE" -N "" -f ~/.ssh/id_ed25519 > /dev/null 2>/tmp/err \
+              || { echo "::error::SG_SSH_PASSPHRASE did not unlock SG_SSH_KEY: $(cat /tmp/err)"; exit 1; }
+          fi
           if ! ssh-keygen -y -P "" -f ~/.ssh/id_ed25519 > /tmp/pub 2>/tmp/err; then
-            echo "::error::SG_SSH_KEY can't be used: $(cat /tmp/err). It must be the PRIVATE key (BEGIN ... PRIVATE KEY) with NO passphrase."
+            echo "::error::SG_SSH_KEY can't be used: $(cat /tmp/err). It must be the PRIVATE key (BEGIN ... PRIVATE KEY) with NO passphrase, or add its passphrase as the SG_SSH_PASSPHRASE secret."
             exit 1
           fi
           echo "Key OK. Fingerprint (must match the key imported in SiteGround > SSH Keys Manager):"

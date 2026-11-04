@@ -1,0 +1,11 @@
+/*
+Theme Name: I AM Mastermind
+Theme URI: https://iammastermind.com
+Author: YROC Consulting
+Description: Custom theme for I AM Mastermind. Pixel-matched port of the original Astro/Tailwind site (EN/ES), with form handling that forwards leads to Go High Level.
+Version: 1.0.0
+Requires at least: 6.4
+Requires PHP: 7.4
+Text Domain: iammastermind
+*/
+/* All front-end styling comes from assets/_astro/global.*.css (compiled Tailwind from the original build). */

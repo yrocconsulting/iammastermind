@@ -1,0 +1,34 @@
+name: Deploy to staging
+
+# Deploys wp-content/themes/iammastermind to iammastermind.yroc.host (SiteGround) over SSH.
+# Repository secrets required (Settings > Secrets and variables > Actions):
+#   SG_HOST, SG_USER, SG_SSH_KEY (private key whose public half is in SiteGround SSH Keys Manager)
+# Optional repository variables: SG_PORT (default 18765), SG_WP (WordPress root path).
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['wp-content/themes/iammastermind/**']
+
+concurrency: deploy-staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ vars.SG_DEPLOY_ENABLED == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint PHP
+        run: find wp-content/themes/iammastermind -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Install SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SG_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+      - name: Deploy
+        env:
+          SG_HOST: ${{ secrets.SG_HOST }}
+          SG_USER: ${{ secrets.SG_USER }}
+          SG_PORT: ${{ vars.SG_PORT || '18765' }}
+          SG_WP: ${{ vars.SG_WP || 'www/iammastermind.yroc.host/public_html' }}
+        run: tools/deploy.sh

@@ -1,0 +1,66 @@
+<script>(function(){const currentLang = "es";
+
+  const form = document.getElementById("contact-form");
+  const modal = document.getElementById("success-modal");
+  const closeModalBtn = document.getElementById("close-modal");
+  const submitBtn = form?.querySelector('button[type="submit"]');
+  const originalBtnContent = submitBtn?.innerHTML;
+
+  const showModal = () => {
+    modal.classList.remove("hidden");
+    requestAnimationFrame(() => {
+      modal.classList.remove("opacity-0");
+      modal.firstElementChild.classList.remove("scale-95");
+    });
+  };
+
+  const hideModal = () => {
+    modal.classList.add("opacity-0");
+    modal.firstElementChild.classList.add("scale-95");
+    setTimeout(() => {
+      modal.classList.add("hidden");
+    }, 300);
+  };
+
+  closeModalBtn?.addEventListener("click", hideModal);
+
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (submitBtn) {
+        submitBtn.innerHTML = "...";
+        submitBtn.disabled = true;
+      }
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+
+      try {
+        const response = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+          form.reset();
+          showModal();
+        } else {
+          throw new Error("Server error");
+        }
+      } catch (error) {
+        alert(
+          currentLang === "es"
+            ? "Ocurrió un error al enviar el mensaje. Inténtalo nuevamente."
+            : "An error occurred while sending the message. Please try again.",
+        );
+      } finally {
+        if (submitBtn) {
+          submitBtn.innerHTML = originalBtnContent;
+          submitBtn.disabled = false;
+        }
+      }
+    });
+  }
+})();</script>

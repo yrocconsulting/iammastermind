@@ -1,0 +1,35 @@
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const shareButtons = document.querySelectorAll(".share-btn");
+
+      shareButtons.forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const url = window.location.href;
+
+          if (navigator.share) {
+            try {
+              await navigator.share({ title: document.title, url: url });
+            } catch (err) {
+              console.log("User cancelled share or error:", err);
+            }
+          } else {
+            navigator.clipboard.writeText(url).then(() => {
+              const originalHTML = btn.innerHTML;
+              btn.innerHTML = `<svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+
+              const toast = document.createElement("div");
+              toast.className =
+                "fixed bottom-5 right-5 bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl z-50 animate-bounce font-bold text-sm";
+              toast.innerText = "Link Copied!";
+              document.body.appendChild(toast);
+
+              setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                toast.remove();
+              }, 2000);
+            });
+          }
+        });
+      });
+    });
+  </script>  </div>

@@ -1,0 +1,6 @@
+# raw crawl output from tools/snapshot.py (regenerable)
+.snapshot/
+node_modules/
+.DS_Store
+*.log
+.env

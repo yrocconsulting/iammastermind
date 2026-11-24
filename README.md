@@ -81,8 +81,10 @@ the snapshot files (or move the page to WordPress content).
 
 - **Stripe payment links** on program/retreat pages point to the **live** Stripe account.
   A test click on staging takes you to a real checkout.
-- **Google Analytics** (`G-ZP07G84RHF`) is turned off when `WP_ENVIRONMENT_TYPE` is not
-  `production`. Set it to `staging` on the staging site (see DEPLOYMENT.md).
+- **Analytics removed.** The original's Google Analytics tag (`G-ZP07G84RHF`) is stripped by
+  `tools/build_theme.py`, so the site loads no analytics. Add your own later under
+  Settings → I AM Mastermind → *Extra &lt;head&gt; code*. The Google Search Console
+  verification tag (not analytics) is kept.
 - `/blog` and `/privacy` overflow sideways on phones on the live site too. The clone copies
   that exactly. Worth fixing after sign-off.
 - Some program pages exist twice on the live site (`/programs/business-matrix` and

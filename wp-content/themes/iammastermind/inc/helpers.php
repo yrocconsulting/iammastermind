@@ -33,22 +33,12 @@ function iam_t( $en, $es ) {
 	return 'es' === iam_lang() ? $es : $en;
 }
 
-/**
- * Resolve snapshot placeholders.
- *
- * Off production (define( 'WP_ENVIRONMENT_TYPE', 'staging' ) in wp-config.php) the
- * original Google Analytics property is not configured, so staging traffic does not
- * pollute live analytics.
- */
+/** Resolve snapshot placeholders. */
 function iam_fill( $html ) {
-	$html = strtr( $html, array(
+	return strtr( $html, array(
 		'{{IAM_ASSETS}}' => IAM_THEME_URI . '/assets',
 		'{{IAM_HOME}}'   => untrailingslashit( home_url() ),
 	) );
-	if ( 'production' !== wp_get_environment_type() && ! apply_filters( 'iam_keep_analytics', false ) ) {
-		$html = preg_replace( '/gtag\(\s*"config"\s*,\s*"G-[A-Z0-9]+"\s*\);/', '/* GA disabled outside production */', $html );
-	}
-	return $html;
 }
 
 /** Read a theme file (relative path) with placeholders resolved. */

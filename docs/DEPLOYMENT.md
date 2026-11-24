@@ -9,7 +9,7 @@ Staging: **https://iammastermind.yroc.host**
    host, username (`u…`) and port (**18765**).
 3. **wp-config.php** (Site Tools → File Manager, or over SSH), above "That's all, stop editing":
    ```php
-   define( 'WP_ENVIRONMENT_TYPE', 'staging' );   // turns off the live GA property
+   define( 'WP_ENVIRONMENT_TYPE', 'staging' );
    ```
    Also tick *Settings → Reading → Discourage search engines* so staging isn't indexed.
 4. **Deploy** from your machine:

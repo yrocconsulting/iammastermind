@@ -23,7 +23,23 @@ LAYOUT_DEFAULT_PAGE = {"site": "blog", "retreat": "retreats"}
 POST_SAMPLE = "blog/beyond-the-peak-the-neuroscience-of-augmented-human-intelligence"
 
 
+# Analytics/tracking removed from the clone (owner's request). Matches the GA4 gtag
+# loader, its inline config block and the comment Astro emits before them.
+ANALYTICS = [
+    re.compile(r"<!--\s*Google tag \(gtag\.js\)\s*-->", re.I),
+    re.compile(r'<script[^>]*src="https://www\.googletagmanager\.com/[^"]*"[^>]*>\s*</script>', re.I),
+    re.compile(r"<script>(?:(?!</script>).)*?gtag\(\s*[\"']config[\"'].*?</script>", re.S),
+]
+
+
+def strip_analytics(s):
+    for rx in ANALYTICS:
+        s = rx.sub("", s)
+    return s
+
+
 def rewrite(s):
+    s = strip_analytics(s)
     s = re.sub(r'(["\'(])/_astro/', r"\1{{IAM_ASSETS}}/_astro/", s)
     s = re.sub(r"https?://(www\.)?iammastermind\.com", "{{IAM_HOME}}", s)
     return s

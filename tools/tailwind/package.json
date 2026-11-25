@@ -1,0 +1,13 @@
+{
+  "name": "iam-theme-styles",
+  "private": true,
+  "description": "Compiles Tailwind classes used by the theme's new templates into assets/iam.css (the original Astro CSS stays untouched).",
+  "scripts": {
+    "build": "tailwindcss -i ./input.css -o ../../wp-content/themes/iammastermind/assets/iam.css --minify",
+    "watch": "tailwindcss -i ./input.css -o ../../wp-content/themes/iammastermind/assets/iam.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.1.17",
+    "tailwindcss": "4.1.17"
+  }
+}

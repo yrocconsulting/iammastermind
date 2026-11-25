@@ -33,12 +33,17 @@ function iam_t( $en, $es ) {
 	return 'es' === iam_lang() ? $es : $en;
 }
 
-/** Resolve snapshot placeholders. */
+/** Resolve snapshot placeholders (asset/home URLs, theme-rendered menus). */
 function iam_fill( $html ) {
-	return strtr( $html, array(
+	$map = array(
 		'{{IAM_ASSETS}}' => IAM_THEME_URI . '/assets',
 		'{{IAM_HOME}}'   => untrailingslashit( home_url() ),
-	) );
+	);
+	if ( false !== strpos( $html, '{{IAM_NAV_' ) ) {
+		$map['{{IAM_NAV_DESKTOP}}'] = iam_nav_html( 'desktop' );
+		$map['{{IAM_NAV_MOBILE}}']  = iam_nav_html( 'mobile' );
+	}
+	return strtr( $html, $map );
 }
 
 /** Read a theme file (relative path) with placeholders resolved. */
@@ -57,9 +62,17 @@ function iam_layout_meta( $layout = 'site' ) {
 	return is_array( $meta ) ? $meta : array( 'html_class' => '', 'body_class' => '' );
 }
 
-/** Small inline script the patched Astro client uses to locate its chunks. */
+/**
+ * Printed in every <head> after the original CSS: the inline script the patched
+ * Astro client uses to locate its chunks, and the stylesheet compiled from the
+ * theme's own new templates (tools/tailwind -> assets/iam.css).
+ */
 function iam_asset_base_script() {
 	echo '<script>window.IAM_ASSET_BASE=' . wp_json_encode( IAM_THEME_URI . '/assets/' ) . ';</script>' . "\n";
+	$css = IAM_THEME_DIR . '/assets/iam.css';
+	if ( is_readable( $css ) ) {
+		printf( '<link rel="stylesheet" href="%s">' . "\n", esc_url( IAM_THEME_URI . '/assets/iam.css?v=' . filemtime( $css ) ) );
+	}
 }
 
 /**

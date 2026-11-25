@@ -38,8 +38,78 @@ def strip_analytics(s):
     return s
 
 
-def rewrite(s):
+# Visible-text edits agreed with the client (2026-11-25 call): "Mastermind Ascension"
+# becomes Retreats. Only display text and alt/title text change; URLs and image
+# filenames (hyphenated/underscored, lower case) are never matched.
+CONTENT_EDITS = {
+    "all": [
+        (r"\| The Mastermind Ascension", "| I AM Retreats"),
+        (r"MASTERMIND ASCENSION RETREAT", "I AM MASTERMIND RETREAT"),
+        (r"The Ascension Journal", "The Retreat Journal"),
+        (r"&copy; (\d{4}) Mastermind Ascension\.", r"&copy; \1 I AM Mastermind."),
+        (r'alt="Mastermind Ascension Logo"', 'alt="I AM Retreats logo"'),
+        (r"The Mastermind Ascension", "The I AM Retreat"),
+        (r"(?<=entire )Mastermind Ascension", "I AM Retreat"),
+        (r'leading-tight">Mastermind</span>', 'leading-tight">I AM Mastermind</span>'),
+        (r'leading-tight">Ascension</span>', 'leading-tight">Retreats</span>'),
+        (r"the Ascension Protocol", "the I AM Retreat protocol"),
+        (r"Initiate Your Ascension", "Begin Your Application"),
+        (r">Mastermind Ascension<", ">I AM Retreat<"),
+        (r"El Protocolo de la Ascensión Mastermind", "El Protocolo del I AM Retreat"),
+        (r"La Ascensión Mastermind", "El I AM Retreat"),
+        (r"el Protocolo de Ascensión", "el protocolo del I AM Retreat"),
+        (r"Ascensión Mastermind", "I AM Retreat"),
+    ],
+    "en": [(r">(?:The )?Ascension</a>", ">The Retreat</a>")],
+    "es": [(r">(?:The )?Ascension</a>", ">El Retiro</a>")],
+}
+
+
+def content_edits(s, lang):
+    for rx, rep in CONTENT_EDITS["all"] + CONTENT_EDITS.get(lang, []):
+        s = re.sub(rx, rep, s)
+    return s
+
+
+def take_element(html, start):
+    """Return the end index of the <div> element that opens at `start`."""
+    depth, i = 0, start
+    for m in re.finditer(r"<(/?)div\b", html[start:]):
+        depth += -1 if m.group(1) else 1
+        if depth == 0:
+            return start + html[start:].index(">", m.start()) + 1
+    raise ValueError("unbalanced div")
+
+
+def nav_placeholders(header, lang, layout_dir):
+    """Swap the site header's two hard-coded menus for theme-rendered menus
+    (inc/nav.php), keeping the original Coaching Programs dropdown as the Mind menu."""
+    d0 = header.find('<div class="hidden lg:flex shrink-0 justify-center')
+    d1 = header.find('<div class="hidden lg:flex flex-1')
+    m0 = header.find('<div class="flex flex-col gap-4 flex-1"')
+    m1 = header.find('<div class="mt-auto pt-8 pb-4 space-y-6"')
+    if min(d0, d1, m0, m1) < 0:
+        raise SystemExit("site header markup changed: nav markers not found")
+    desk, mob = header[d0:d1], header[m0:m1]
+    # original programs dropdown (desktop) and accordion (mobile)
+    b = desk.find("dropdown-wrapper", desk.find("dropdown-wrapper") + 1)  # 2nd dropdown = programs
+    b = desk.rfind("<div", 0, b)
+    prog = desk[b:take_element(desk, b)]
+    a = mob.find("mobile-accordion", mob.find("mobile-accordion") + 1)
+    a = mob.rfind("<div", 0, a)
+    acc = mob[a:take_element(mob, a)]
+    label = re.search(r'<span class="relative z-10"[^>]*>([^<]+)</span>', prog).group(1)
+    prog = prog.replace(">" + label + "</span>", ">{{LABEL}}</span>", 1)
+    acc = re.sub(r"(<button[^>]*>)\s*" + re.escape(label) + r"\s*<svg", r"\1 {{LABEL}} <svg", acc, 1)
+    open(os.path.join(layout_dir, lang + ".nav-programs.html"), "w").write(prog.strip() + "\n")
+    open(os.path.join(layout_dir, lang + ".nav-programs-mobile.html"), "w").write(acc.strip() + "\n")
+    return header[:d0] + "{{IAM_NAV_DESKTOP}} " + header[d1:m0] + "{{IAM_NAV_MOBILE}} " + header[m1:]
+
+
+def rewrite(s, lang=None):
     s = strip_analytics(s)
+    if lang:
+        s = content_edits(s, lang)
     s = re.sub(r'(["\'(])/_astro/', r"\1{{IAM_ASSETS}}/_astro/", s)
     s = re.sub(r"https?://(www\.)?iammastermind\.com", "{{IAM_HOME}}", s)
     return s
@@ -107,11 +177,14 @@ def main():
             header_layout[(norm(p["header"]), lang)] = name
             d = os.path.join(T, "layouts", name)
             os.makedirs(d, exist_ok=True)
-            open(os.path.join(d, lang + ".header.html"), "w").write(rewrite(p["header"]).strip() + "\n")
-            open(os.path.join(d, lang + ".footer.html"), "w").write(rewrite(p["footer"]).strip() + "\n")
+            header = rewrite(p["header"], lang)
+            if name == "site":
+                header = nav_placeholders(header, lang, d)
+            open(os.path.join(d, lang + ".header.html"), "w").write(header.strip() + "\n")
+            open(os.path.join(d, lang + ".footer.html"), "w").write(rewrite(p["footer"], lang).strip() + "\n")
             head = re.sub(r"<title>.*?</title>", "", p["head"], flags=re.S)
             head = re.sub(r'<meta name="description"[^>]*>', "", head)
-            open(os.path.join(d, lang + ".head.html"), "w").write(rewrite(head) + "\n")
+            open(os.path.join(d, lang + ".head.html"), "w").write(rewrite(head, lang) + "\n")
             json.dump({"html_class": p["html_class"], "body_class": p["body_class"]},
                       open(os.path.join(d, lang + ".json"), "w"))
 
@@ -130,13 +203,13 @@ def main():
             entry[lang] = {"layout": layout, "html_lang": p["html_lang"] or lang, "html_class": p["html_class"], "body_class": p["body_class"]}
             base = os.path.join(T, "snapshots", lang, key)
             os.makedirs(os.path.dirname(base), exist_ok=True)
-            open(base + ".head.html", "w").write(rewrite(p["head"]) + "\n")
-            open(base + ".main.html", "w").write(rewrite(main_html).strip() + "\n")
+            open(base + ".head.html", "w").write(rewrite(p["head"], lang) + "\n")
+            open(base + ".main.html", "w").write(rewrite(main_html, lang).strip() + "\n")
             if p["tail"]:
-                open(base + ".tail.html", "w").write(rewrite(p["tail"]) + "\n")
+                open(base + ".tail.html", "w").write(rewrite(p["tail"], lang) + "\n")
             if key == POST_SAMPLE:
                 tail = main_html[main_html.rindex("</main>") + 7:]
-                open(os.path.join(T, "layouts", "site", lang + ".post-scripts.html"), "w").write(rewrite(tail).strip() + "\n")
+                open(os.path.join(T, "layouts", "site", lang + ".post-scripts.html"), "w").write(rewrite(tail, lang).strip() + "\n")
         manifest[key] = entry
 
     lines = ["<?php", "// Generated by tools/build_theme.py - do not edit by hand.", "return array("]

@@ -12,6 +12,7 @@ define( 'IAM_THEME_DIR', get_template_directory() );
 define( 'IAM_THEME_URI', get_template_directory_uri() );
 
 require IAM_THEME_DIR . '/inc/helpers.php';
+require IAM_THEME_DIR . '/inc/nav.php';
 require IAM_THEME_DIR . '/inc/snapshots.php';
 require IAM_THEME_DIR . '/inc/settings.php';
 require IAM_THEME_DIR . '/inc/forms.php';

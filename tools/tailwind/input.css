@@ -1,0 +1,15 @@
+/* Styles for templates added in WordPress (parts/, page templates).
+   Every class is prefixed tw: (e.g. tw:flex tw:md:grid-cols-3) so this file can
+   never override the original Astro CSS on original markup.
+   No preflight: the original global CSS already provides the base layer. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme) theme(inline) prefix(tw);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+
+/* Only scan the theme's own new templates, never the snapshots. */
+@source "../../wp-content/themes/iammastermind/parts";
+@source "../../wp-content/themes/iammastermind/*.php";
+@source "../../wp-content/themes/iammastermind/inc";
+
+/* Same dark-mode convention as the original build: <html class="dark"> */
+@custom-variant dark (&:is(.dark *));

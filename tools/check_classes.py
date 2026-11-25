@@ -20,8 +20,10 @@ missing = {}
 for f in files:
     src = open(f, encoding="utf-8").read()
     for attr in re.findall(r"class=[\"']([^\"']*)[\"']", src) + re.findall(r"iam_icon\([^,]+,\s*'([^']+)'", src):
+        if "<?" in attr or "?>" in attr:
+            continue  # computed in PHP
         for c in attr.split():
-            if c.startswith("tw:") or "<?" in c or "$" in c or "{" in c or c in ("lucide", "icon-gold", "group", "dropdown-wrapper", "dropdown-content", "gooey-container", "gooey-item", "mobile-accordion", "accordion-content") or c.startswith("lucide-"):
+            if c.startswith("tw:") or "<?" in c or "$" in c or "{" in c or "%" in c or c in ("lucide", "icon-gold", "group", "dropdown-wrapper", "dropdown-content", "gooey-container", "gooey-item", "mobile-accordion", "accordion-content", "iam-lead-form", "iam-form-msg", "share-btn") or c.startswith("lucide-"):
                 continue
             if "." + esc(c) not in css:
                 missing.setdefault(c, set()).add(f.replace(THEME + "/", ""))

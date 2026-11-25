@@ -19,6 +19,8 @@ function iam_settings_fields() {
 		'ghl_tags'          => array( 'Tags for every lead', 'text', 'Comma separated. form-&lt;type&gt; and lang-&lt;en|es&gt; tags are added automatically.' ),
 		'ghl_tracking_id'   => array( 'External tracking ID', 'text', 'GHL > Settings > External Tracking (tk_...). Attributes page visits to contacts.' ),
 		'member_portal_url' => array( 'Membership portal URL', 'url', 'Where /login and /dashboard go (GHL Memberships / Client Portal), e.g. https://members.iammastermind.com' ),
+		'longevity_url'     => array( 'Longevity / telehealth site URL', 'url', 'The separate telehealth site. The home page Longevity card and the Longevity page link out to it. Leave empty until it launches.' ),
+		'abraham_profiles'  => array( 'Abraham\'s official profiles', 'code', 'One URL per line (LinkedIn, Instagram, YouTube, podcast pages…). Used in the Abraham Carranza page\'s structured data for Google\'s knowledge panel.' ),
 		'notify_email'      => array( 'Notification email', 'text', 'Optional. Leave empty to rely on GHL notifications only.' ),
 		'head_scripts'      => array( 'Extra &lt;head&gt; code', 'code', 'Optional raw HTML.' ),
 		'footer_scripts'    => array( 'Extra footer code', 'code', 'Optional raw HTML, e.g. the GHL Chat Widget snippet.' ),

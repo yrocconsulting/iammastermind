@@ -14,7 +14,8 @@ DRY = "--dry-run" in sys.argv
 TAGS = [
     # sent by the website forms (theme inc/ghl.php)
     "website-lead", "form-newsletter", "form-contact", "form-challenge",
-    "form-assessment", "form-application", "form-quiz", "lang-en", "lang-es",
+    "form-assessment", "form-application", "form-quiz", "form-longevity-waitlist",
+    "form-research", "form-speaker", "lang-en", "lang-es",
     # customer journey stages (strategy: Lead -> trial -> buyer -> applicant)
     "stage-lead", "stage-growth-society-trial", "stage-program-buyer",
     "stage-retreat-applicant", "stage-inner-circle-applicant",

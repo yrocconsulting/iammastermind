@@ -31,6 +31,9 @@ if [ "${1:-}" = "--setup" ]; then
   $SSH "$SG_USER@$SG_HOST" "cd $SG_WP && wp theme activate iammastermind && wp iam setup"
 fi
 
+echo "==> Running theme setup (creates any new pages; safe to repeat)"
+$SSH "$SG_USER@$SG_HOST" "cd $SG_WP && wp iam setup" || echo "   (skipped: activate the theme in WordPress first)"
+
 echo "==> Purging SiteGround cache (ignored if Speed Optimizer is not installed)"
 $SSH "$SG_USER@$SG_HOST" "cd $SG_WP && (wp sg purge || true)" || true
 echo "Done."

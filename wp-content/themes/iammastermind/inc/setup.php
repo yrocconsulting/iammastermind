@@ -44,6 +44,19 @@ function iam_setup_site() {
 		}
 	}
 
+	foreach ( iam_native_pages() as $slug => $meta ) {
+		if ( ! get_page_by_path( $slug ) ) {
+			$id = wp_insert_post( array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => $meta[0][0],
+				'post_name'    => $slug,
+				'post_content' => '',
+			) );
+			$created += ( $id && ! is_wp_error( $id ) ) ? 1 : 0;
+		}
+	}
+
 	$home = get_page_by_path( 'home' );
 	if ( $home ) {
 		update_option( 'show_on_front', 'page' );

@@ -78,7 +78,7 @@ function iam_render_snapshot( $key ) {
 	if ( 'none' !== $meta['layout'] ) {
 		echo iam_file( "layouts/{$meta['layout']}/{$lang}.header.html" ); // phpcs:ignore
 	}
-	echo iam_file( $base . '.main.html' ); // phpcs:ignore
+	echo iam_apply_patches( $key, iam_file( $base . '.main.html' ) ); // phpcs:ignore -- trusted theme files
 	if ( 'none' !== $meta['layout'] ) {
 		echo iam_file( "layouts/{$meta['layout']}/{$lang}.footer.html" ); // phpcs:ignore
 	}

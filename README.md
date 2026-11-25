@@ -64,6 +64,21 @@ Checked against the live site on 2026-11-04 with a local WordPress 6.9 + PHP 8.3
 - Language toggle, light/dark toggle, Retreat page transitions, newsletter, contact,
   Inner Circle forms, honeypot and email validation all tested. No JS errors.
 
+## New pages and sections (2026-11-25 direction update)
+
+New content lives in the theme, separate from the copies of the original pages:
+`page-*.php` (Longevity, Alexandria R&D Center, Abraham Carranza, Speaker),
+`parts/*.php` (sections slotted into original pages by `inc/patches.php`) and
+`inc/nav.php` (the menu). These use Tailwind classes with a `tw:` prefix, compiled by:
+
+```bash
+cd tools/tailwind && npm install && npm run build   # writes assets/iam.css
+```
+
+The prefix keeps new styles from ever overriding the original CSS.
+`python3 tools/check_classes.py` flags unprefixed classes the original CSS
+doesn't have. Draft copy to review: `docs/CONTENT-REVIEW.md`.
+
 ## Re-syncing from the live site
 
 If the live site changes before cut-over:

@@ -7,13 +7,16 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'IAM_THEME_VERSION', '1.0.0' );
+define( 'IAM_THEME_VERSION', '1.1.0' );
 define( 'IAM_THEME_DIR', get_template_directory() );
 define( 'IAM_THEME_URI', get_template_directory_uri() );
 
 require IAM_THEME_DIR . '/inc/helpers.php';
 require IAM_THEME_DIR . '/inc/nav.php';
+require IAM_THEME_DIR . '/inc/components.php';
+require IAM_THEME_DIR . '/inc/pages.php';
 require IAM_THEME_DIR . '/inc/snapshots.php';
+require IAM_THEME_DIR . '/inc/patches.php';
 require IAM_THEME_DIR . '/inc/settings.php';
 require IAM_THEME_DIR . '/inc/forms.php';
 require IAM_THEME_DIR . '/inc/ghl.php';

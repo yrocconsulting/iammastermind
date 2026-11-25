@@ -107,6 +107,9 @@ function iam_ghl_tags( $lead ) {
 	$tags[] = 'form-' . sanitize_title( $lead['type'] );
 	$tags[] = 'lang-' . $lead['lang'];
 	$tags[] = 'stage-lead';
+	if ( 'longevity-waitlist' === $lead['type'] ) {
+		$tags[] = 'waitlist-longevity';
+	}
 	if ( 'assessment' === $lead['type'] ) {
 		$tags[] = 'stage-retreat-applicant';
 	} elseif ( 'application' === $lead['type'] ) {

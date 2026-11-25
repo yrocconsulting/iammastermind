@@ -43,6 +43,7 @@ function iam_ghl_send_lead( $lead ) {
 			'lang'         => $lead['lang'],
 			'page_url'     => $lead['page'],
 			'tags'         => implode( ',', iam_ghl_tags( $lead ) ),
+			'custom'       => iam_ghl_field_values( $lead ),
 			'submitted_at' => gmdate( 'c' ),
 			'fields'       => $lead['fields'],
 		);
@@ -68,6 +69,14 @@ function iam_ghl_send_lead( $lead ) {
 			'source'     => 'Website: ' . ( $lead['source'] ?: $lead['type'] ),
 			'tags'       => iam_ghl_tags( $lead ),
 		) );
+		$custom = array();
+		foreach ( iam_ghl_field_values( $lead ) as $key => $value ) {
+			// The API takes the field key without its "contact." prefix.
+			$custom[] = array( 'key' => preg_replace( '/^contact\./', '', $key ), 'field_value' => $value );
+		}
+		if ( $custom ) {
+			$contact['customFields'] = $custom;
+		}
 		$r = iam_ghl_api( 'POST', '/contacts/upsert', apply_filters( 'iam_ghl_contact', $contact, $lead ) );
 		$result['upsert'] = $r['code'];
 		$id = $r['body']['contact']['id'] ?? '';
@@ -97,7 +106,79 @@ function iam_ghl_tags( $lead ) {
 	$tags   = array_filter( array_map( 'trim', explode( ',', (string) iam_opt( 'ghl_tags', 'website-lead' ) ) ) );
 	$tags[] = 'form-' . sanitize_title( $lead['type'] );
 	$tags[] = 'lang-' . $lead['lang'];
+	$tags[] = 'stage-lead';
+	if ( 'assessment' === $lead['type'] ) {
+		$tags[] = 'stage-retreat-applicant';
+	} elseif ( 'application' === $lead['type'] ) {
+		$tags[] = 'stage-inner-circle-applicant';
+	}
+	$program = iam_ghl_program_of_interest( $lead );
+	if ( in_array( $program, array( 'Retreats', 'Longevity' ), true ) ) {
+		$tags[] = 'interest-body';
+	} elseif ( $program ) {
+		$tags[] = 'interest-mind';
+	}
 	return array_values( array_unique( apply_filters( 'iam_ghl_tags', $tags, $lead ) ) );
+}
+
+/**
+ * Contact custom field values for a lead, keyed by GHL field key.
+ * Fields are created by tools/ghl/foundations.py; see docs/GHL-BUILD.md.
+ */
+function iam_ghl_field_values( $lead ) {
+	$values = array(
+		'contact.preferred_language'  => 'es' === $lead['lang'] ? 'Español' : 'English',
+		'contact.source_page'         => $lead['page'],
+		'contact.form_message'        => $lead['message'],
+		'contact.program_of_interest' => iam_ghl_program_of_interest( $lead ),
+	);
+	if ( in_array( $lead['type'], array( 'assessment', 'application' ), true ) ) {
+		$lines = array();
+		foreach ( $lead['fields'] as $k => $v ) {
+			if ( '' !== $v && ! in_array( strtolower( $k ), array( 'name', 'fullname', 'email', 'phone', 'phonenumber', 'lang', 'type' ), true ) ) {
+				$lines[] = $k . ': ' . $v;
+			}
+		}
+		$values['contact.application_answers'] = implode( "\n", $lines );
+	}
+	return array_filter( apply_filters( 'iam_ghl_field_values', $values, $lead ), 'strlen' );
+}
+
+/**
+ * Best match for the "Program of Interest" dropdown, from the form's own
+ * interest/source fields, the page it was sent from, or the form type.
+ * Returns '' when nothing matches (the field is then left untouched).
+ */
+function iam_ghl_program_of_interest( $lead ) {
+	$hay = strtolower( implode( ' ', array( $lead['source'], $lead['fields']['interest'] ?? '', $lead['page'] ) ) );
+	$map = array(
+		'escalando'     => 'Escalando en la Vida',
+		'scaling'       => 'Scaling For Life',
+		'matriz'        => 'Matriz de Negocios',
+		'inner-circle'  => 'Inner Circle',
+		'inner circle'  => 'Inner Circle',
+		'divinity'      => 'Inner Circle',
+		'business'      => 'Business Matrix',
+		'matrix'        => 'Business Matrix',
+		'mastery'       => 'Mastery Lifestyle',
+		'growth'        => 'Growth Society',
+		'longevity'     => 'Longevity',
+		'retreat'       => 'Retreats',
+		'ascension'     => 'Retreats',
+		'immersion'     => 'Retreats',
+	);
+	foreach ( $map as $needle => $program ) {
+		if ( false !== strpos( $hay, $needle ) ) {
+			return $program;
+		}
+	}
+	if ( 'assessment' === $lead['type'] ) {
+		return 'Retreats';
+	}
+	if ( 'application' === $lead['type'] ) {
+		return 'Inner Circle';
+	}
+	return '';
 }
 
 /** Minimal LeadConnector API v2 client. */
@@ -111,6 +192,7 @@ function iam_ghl_api( $method, $path, $body = null ) {
 			'Accept'        => 'application/json',
 			'Content-Type'  => 'application/json',
 		),
+		'user-agent' => 'IAM-Mastermind-Site/' . IAM_THEME_VERSION . '; ' . home_url( '/' ),
 	);
 	if ( null !== $body ) {
 		$args['body'] = wp_json_encode( $body );
